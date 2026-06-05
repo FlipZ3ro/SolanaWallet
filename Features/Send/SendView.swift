@@ -20,79 +20,133 @@ struct SendView: View {
 
     var body: some View {
         NavigationView {
-            Form {
-                // Recipient Section
-                Section("Recipient") {
-                    TextField("Enter Solana address", text: $recipientAddress)
-                        .autocapitalization(.none)
-                        .disableAutocorrection(true)
-                        .keyboardType(.URL)
+            ZStack {
+                Theme.bg.ignoresSafeArea()
 
-                    Button("Paste from Clipboard") {
-                        if let pasteboard = UIPasteboard.general.string {
-                            recipientAddress = pasteboard
-                        }
-                    }
-                    .foregroundColor(.blue)
-                }
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Recipient
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Recipient")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Theme.textSecondary)
 
-                // Amount Section
-                Section("Amount") {
-                    HStack {
-                        TextField("0.00", text: $amount)
-                            .keyboardType(.decimalPad)
+                            TextField("Enter Solana address", text: $recipientAddress)
+                                .font(.system(size: 15, weight: .medium, design: .monospaced))
+                                .foregroundColor(Theme.text)
+                                .padding(14)
+                                .background(Theme.card)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Theme.cardBorder, lineWidth: 1)
+                                )
 
-                        Text("SOL")
-                            .foregroundColor(.secondary)
-                    }
-
-                    HStack {
-                        Text("Available: \(walletManager.balance.displaySOL) SOL")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-
-                        Spacer()
-
-                        Button("Max") {
-                            amount = String(walletManager.balance.sol)
-                        }
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                    }
-                }
-
-                // Memo Section
-                Section("Memo (Optional)") {
-                    TextField("Add a memo", text: $memo)
-                }
-
-                // Send Button
-                Section {
-                    Button(action: { showConfirmation = true }) {
-                        HStack {
-                            Spacer()
-                            if isLoading {
-                                ProgressView()
-                                    .tint(.white)
-                            } else {
-                                Text("Send SOL")
-                                    .fontWeight(.semibold)
+                            Button(action: {
+                                if let pasteboard = UIPasteboard.general.string {
+                                    recipientAddress = pasteboard
+                                }
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "doc.on.clipboard")
+                                        .font(.system(size: 12))
+                                    Text("Paste from Clipboard")
+                                        .font(.system(size: 13, weight: .medium))
+                                }
+                                .foregroundColor(Theme.accent)
                             }
-                            Spacer()
                         }
+
+                        // Amount
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Amount")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Theme.textSecondary)
+
+                            HStack {
+                                TextField("0.00", text: $amount)
+                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .foregroundColor(Theme.text)
+                                    .keyboardType(.decimalPad)
+
+                                Text("SOL")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(Theme.textSecondary)
+                            }
+                            .padding(14)
+                            .background(Theme.card)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Theme.cardBorder, lineWidth: 1)
+                            )
+
+                            HStack {
+                                Text("Available: \(walletManager.balance.displaySOL) SOL")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(Theme.textSecondary)
+
+                                Spacer()
+
+                                Button("Max") {
+                                    amount = String(walletManager.balance.sol)
+                                }
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Theme.accent)
+                            }
+                        }
+
+                        // Memo
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Memo (Optional)")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Theme.textSecondary)
+
+                            TextField("Add a memo", text: $memo)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(Theme.text)
+                                .padding(14)
+                                .background(Theme.card)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Theme.cardBorder, lineWidth: 1)
+                                )
+                        }
+
+                        // Send Button
+                        Button(action: { showConfirmation = true }) {
+                            HStack {
+                                if isLoading {
+                                    ProgressView()
+                                        .tint(Theme.bg)
+                                } else {
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.system(size: 16, weight: .semibold))
+                                    Text("Send SOL")
+                                        .font(.system(size: 16, weight: .semibold))
+                                }
+                            }
+                            .foregroundColor(Theme.bg)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(canSend ? Theme.send : Theme.textTertiary)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                        }
+                        .disabled(!canSend || isLoading)
                     }
-                    .listRowBackground(canSend ? Color.blue : Color.gray)
-                    .foregroundColor(.white)
-                    .disabled(!canSend || isLoading)
+                    .padding(20)
                 }
             }
             .navigationTitle("Send SOL")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(Theme.textSecondary)
                 }
             }
             .alert("Confirm Transaction", isPresented: $showConfirmation) {
@@ -120,6 +174,7 @@ struct SendView: View {
                 Text(errorMessage)
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - Computed Properties
@@ -139,7 +194,6 @@ struct SendView: View {
         isLoading = true
 
         Task {
-            // Authenticate with Face ID
             let authenticated = await biometricAuth.authenticateForTransaction(
                 amount: amount,
                 recipient: recipientAddress
@@ -154,7 +208,6 @@ struct SendView: View {
                 return
             }
 
-            // Send transaction
             do {
                 let signature = try await walletManager.sendSOL(
                     to: recipientAddress,
@@ -182,5 +235,6 @@ struct SendView: View {
 struct SendView_Previews: PreviewProvider {
     static var previews: some View {
         SendView()
+            .preferredColorScheme(.dark)
     }
 }

@@ -1,5 +1,23 @@
 import SwiftUI
 
+// MARK: - Theme
+
+enum Theme {
+    static let bg = Color(red: 0.04, green: 0.04, blue: 0.06)         // #0a0a0f
+    static let card = Color(red: 0.08, green: 0.08, blue: 0.11)       // #141416
+    static let cardBorder = Color.white.opacity(0.06)
+    static let accent = Color(red: 0.0, green: 0.96, blue: 0.52)      // #00F584
+    static let accentDim = Color(red: 0.0, green: 0.96, blue: 0.52).opacity(0.15)
+    static let text = Color.white
+    static let textSecondary = Color.white.opacity(0.5)
+    static let textTertiary = Color.white.opacity(0.3)
+    static let send = Color(red: 1.0, green: 0.27, blue: 0.27)        // #FF4545
+    static let receive = Color(red: 0.0, green: 0.96, blue: 0.52)     // #00F584
+    static let swap = Color(red: 1.0, green: 0.6, blue: 0.0)          // #FF9900
+    static let cardGradientStart = Color(red: 0.0, green: 0.15, blue: 0.12)
+    static let cardGradientEnd = Color(red: 0.08, green: 0.0, blue: 0.15)
+}
+
 // MARK: - Dashboard View
 
 struct DashboardView: View {
@@ -9,11 +27,12 @@ struct DashboardView: View {
     @State private var showingSendSheet = false
     @State private var showingReceiveSheet = false
     @State private var showingSettingsSheet = false
+    @State private var balanceHidden = false
 
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: AppConstants.UI.padding) {
+                VStack(spacing: 16) {
                     // Balance Card
                     balanceCard
 
@@ -26,14 +45,25 @@ struct DashboardView: View {
                     // Recent Transactions
                     recentTransactions
                 }
-                .padding()
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Theme.bg.ignoresSafeArea())
             .navigationTitle("Wallet")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingSettingsSheet = true }) {
-                        Image(systemName: "gearshape")
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(Theme.textSecondary)
+                            .frame(width: 36, height: 36)
+                            .background(Theme.card)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle().stroke(Theme.cardBorder, lineWidth: 1)
+                            )
                     }
                 }
             }
@@ -53,77 +83,122 @@ struct DashboardView: View {
                 await walletManager.refreshBalance()
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - Balance Card
 
     private var balanceCard: some View {
-        VStack(spacing: 12) {
-            Text("Total Balance")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-            HStack(alignment: .firstTextBaseline) {
-                Text(walletManager.balance.displaySOL)
-                    .font(.system(size: 42, weight: .bold, design: .rounded))
-                    .foregroundColor(.primary)
-
-                Text("SOL")
-                    .font(.title3)
-                    .foregroundColor(.secondary)
+        VStack(spacing: 20) {
+            // Network indicator
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(Theme.accent)
+                    .frame(width: 6, height: 6)
+                Text("Mainnet")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(Theme.accent)
+                Spacer()
             }
 
-            Text(walletManager.balance.displayUSD)
-                .font(.title3)
-                .foregroundColor(.secondary)
+            // Balance
+            VStack(spacing: 4) {
+                Text("Total Balance")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
 
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(balanceHidden ? "•••••" : walletManager.balance.displaySOL)
+                        .font(.system(size: 44, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.text)
+                        .contentTransition(.numericText())
+                        .animation(.snappy, value: walletManager.balance.sol)
+
+                    Text("SOL")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Theme.textSecondary)
+                }
+
+                Text(balanceHidden ? "•••••" : walletManager.balance.displayUSD)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
+            }
+
+            // Address pill
             if let address = walletManager.currentWallet?.publicKey {
-                Text(address.truncatedAddress)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color(.systemGray6))
+                Button(action: {
+                    UIPasteboard.general.string = address
+                }) {
+                    HStack(spacing: 6) {
+                        Text(address.truncatedAddress)
+                            .font(.system(size: 12, weight: .medium, design: .monospaced))
+                            .foregroundColor(Theme.textSecondary)
+
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 10))
+                            .foregroundColor(Theme.accent)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Color.white.opacity(0.06))
                     .clipShape(Capsule())
+                }
             }
         }
-        .padding(AppConstants.UI.padding)
+        .padding(20)
         .frame(maxWidth: .infinity)
         .background(
-            LinearGradient(
-                colors: [.blue, .purple],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            ZStack {
+                LinearGradient(
+                    colors: [Theme.cardGradientStart, Theme.cardGradientEnd],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                // Subtle glow
+                RadialGradient(
+                    colors: [Theme.accent.opacity(0.08), .clear],
+                    center: .topLeading,
+                    startRadius: 0,
+                    endRadius: 200
+                )
+            }
         )
-        .foregroundColor(.white)
-        .clipShape(RoundedRectangle(cornerRadius: AppConstants.UI.cornerRadius))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Theme.cardBorder, lineWidth: 1)
+        )
+        .shadow(color: Theme.accent.opacity(0.1), radius: 20, y: 10)
     }
 
     // MARK: - Quick Actions
 
     private var quickActions: some View {
-        HStack(spacing: AppConstants.UI.padding) {
-            ActionButton(
-                icon: "arrow.up.circle.fill",
+        HStack(spacing: 12) {
+            ModernActionButton(
+                icon: "arrow.up.right",
                 title: "Send",
-                color: .red
+                color: Theme.send,
+                gradient: [Theme.send.opacity(0.8), Theme.send.opacity(0.4)]
             ) {
                 showingSendSheet = true
             }
 
-            ActionButton(
-                icon: "arrow.down.circle.fill",
+            ModernActionButton(
+                icon: "arrow.down.left",
                 title: "Receive",
-                color: .green
+                color: Theme.receive,
+                gradient: [Theme.receive.opacity(0.8), Theme.receive.opacity(0.4)]
             ) {
                 showingReceiveSheet = true
             }
 
-            ActionButton(
+            ModernActionButton(
                 icon: "arrow.triangle.2.circlepath",
                 title: "Swap",
-                color: .orange
+                color: Theme.swap,
+                gradient: [Theme.swap.opacity(0.8), Theme.swap.opacity(0.4)]
             ) {
                 // TODO: Show swap view
             }
@@ -134,28 +209,48 @@ struct DashboardView: View {
 
     private var tokenList: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Tokens")
-                .font(.headline)
+            HStack {
+                Text("Tokens")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(Theme.text)
+
+                Spacer()
+
+                Text("\(walletManager.tokens.count)")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Theme.card)
+                    .clipShape(Capsule())
+            }
 
             if walletManager.tokens.isEmpty {
-                VStack(spacing: 8) {
+                VStack(spacing: 12) {
                     Image(systemName: "wallet.pass")
-                        .font(.largeTitle)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 28))
+                        .foregroundColor(Theme.textTertiary)
 
                     Text("No tokens found")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Theme.textSecondary)
                 }
                 .frame(maxWidth: .infinity)
-                .padding()
+                .padding(.vertical, 24)
             } else {
                 ForEach(walletManager.tokens) { token in
                     TokenRow(token: token)
                 }
             }
         }
-        .cardStyle()
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Theme.cardBorder, lineWidth: 1)
+        )
     }
 
     // MARK: - Recent Transactions
@@ -164,62 +259,87 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Recent Transactions")
-                    .font(.headline)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(Theme.text)
 
                 Spacer()
 
                 Button("See All") {
                     // TODO: Show all transactions
                 }
-                .font(.subheadline)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(Theme.accent)
             }
 
             if walletManager.transactions.isEmpty {
-                VStack(spacing: 8) {
+                VStack(spacing: 12) {
                     Image(systemName: "clock.arrow.circlepath")
-                        .font(.largeTitle)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 28))
+                        .foregroundColor(Theme.textTertiary)
 
                     Text("No transactions yet")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Theme.textSecondary)
                 }
                 .frame(maxWidth: .infinity)
-                .padding()
+                .padding(.vertical, 24)
             } else {
                 ForEach(walletManager.transactions.prefix(5)) { tx in
                     TransactionRow(transaction: tx)
                 }
             }
         }
-        .cardStyle()
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Theme.cardBorder, lineWidth: 1)
+        )
     }
 }
 
-// MARK: - Action Button
+// MARK: - Modern Action Button
 
-struct ActionButton: View {
+struct ModernActionButton: View {
     let icon: String
     let title: String
     let color: Color
+    let gradient: [Color]
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(color)
+            VStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: gradient,
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                }
 
                 Text(title)
-                    .font(.caption)
-                    .foregroundColor(.primary)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Theme.text)
             }
             .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color(.systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: AppConstants.UI.smallCornerRadius))
-            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+            .padding(.vertical, 16)
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Theme.cardBorder, lineWidth: 1)
+            )
         }
     }
 }
@@ -230,7 +350,7 @@ struct TokenRow: View {
     let token: Token
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             // Token Icon
             AsyncImage(url: URL(string: token.logoURL ?? "")) { image in
                 image
@@ -238,35 +358,36 @@ struct TokenRow: View {
                     .aspectRatio(contentMode: .fit)
             } placeholder: {
                 Circle()
-                    .fill(Color.blue.opacity(0.2))
+                    .fill(Theme.accentDim)
                     .overlay(
                         Text(String(token.symbol.prefix(1)))
-                            .font(.headline)
-                            .foregroundColor(.blue)
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Theme.accent)
                     )
             }
             .frame(width: 40, height: 40)
+            .clipShape(Circle())
 
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(token.name)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Theme.text)
 
                 Text(token.symbol)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
             }
 
             Spacer()
 
-            VStack(alignment: .trailing) {
+            VStack(alignment: .trailing, spacing: 2) {
                 Text(token.displayBalance)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Theme.text)
 
-                Text("$0.00") // TODO: Calculate USD value
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Text("$0.00")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
             }
         }
         .padding(.vertical, 4)
@@ -279,33 +400,38 @@ struct TransactionRow: View {
     let transaction: Transaction
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             // Transaction Icon
-            Image(systemName: transaction.type == .send ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
-                .font(.title3)
-                .foregroundColor(transaction.type == .send ? .red : .green)
+            ZStack {
+                Circle()
+                    .fill(transaction.type == .send ? Theme.send.opacity(0.15) : Theme.receive.opacity(0.15))
+                    .frame(width: 40, height: 40)
 
-            VStack(alignment: .leading) {
+                Image(systemName: transaction.type == .send ? "arrow.up.right" : "arrow.down.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(transaction.type == .send ? Theme.send : Theme.receive)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
                 Text(transaction.type == .send ? "Sent" : "Received")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Theme.text)
 
                 Text(transaction.timestamp.timeAgoDisplay)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
             }
 
             Spacer()
 
-            VStack(alignment: .trailing) {
+            VStack(alignment: .trailing, spacing: 2) {
                 Text("\(transaction.type == .send ? "-" : "+")\(String(format: "%.4f", transaction.amount)) SOL")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(transaction.type == .send ? .red : .green)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(transaction.type == .send ? Theme.send : Theme.receive)
 
                 Text(transaction.status.rawValue.capitalized)
-                    .font(.caption)
-                    .foregroundColor(transaction.status == .confirmed ? .green : .orange)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(transaction.status == .confirmed ? Theme.accent : Theme.swap)
             }
         }
         .padding(.vertical, 4)
@@ -317,5 +443,6 @@ struct TransactionRow: View {
 struct DashboardView_Previews: PreviewProvider {
     static var previews: some View {
         DashboardView()
+            .preferredColorScheme(.dark)
     }
 }

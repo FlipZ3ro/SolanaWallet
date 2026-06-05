@@ -28,49 +28,86 @@ struct ContentView: View {
     // MARK: - Onboarding View
 
     private var onboardingView: some View {
-        VStack(spacing: 32) {
-            Spacer()
+        ZStack {
+            Theme.bg.ignoresSafeArea()
 
-            // Logo
-            Image(systemName: "wave.3.right.circle.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.blue)
+            // Ambient glow
+            RadialGradient(
+                colors: [Theme.accent.opacity(0.06), .clear],
+                center: .center,
+                startRadius: 0,
+                endRadius: 300
+            )
+            .ignoresSafeArea()
 
-            // Title
-            VStack(spacing: 8) {
-                Text("Solana Wallet")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            VStack(spacing: 40) {
+                Spacer()
 
-                Text("Your gateway to the Solana ecosystem")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
+                // Logo
+                ZStack {
+                    Circle()
+                        .fill(Theme.accentDim)
+                        .frame(width: 100, height: 100)
 
-            Spacer()
-
-            // Action Buttons
-            VStack(spacing: 16) {
-                Button(action: { showCreateWallet = true }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Create New Wallet")
-                    }
-                    .primaryButtonStyle()
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 40, weight: .bold))
+                        .foregroundColor(Theme.accent)
                 }
 
-                Button(action: { showImportWallet = true }) {
-                    HStack {
-                        Image(systemName: "arrow.right.circle.fill")
-                        Text("Import Existing Wallet")
-                    }
-                    .secondaryButtonStyle()
-                }
-            }
-            .padding(.horizontal, 32)
+                // Title
+                VStack(spacing: 12) {
+                    Text("SolanaWallet")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(Theme.text)
 
-            Spacer()
+                    Text("Your gateway to the Solana ecosystem")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(Theme.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                Spacer()
+
+                // Action Buttons
+                VStack(spacing: 12) {
+                    Button(action: { showCreateWallet = true }) {
+                        HStack {
+                            Image(systemName: "plus")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Create New Wallet")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(Theme.bg)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Theme.accent)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+
+                    Button(action: { showImportWallet = true }) {
+                        HStack {
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Import Existing Wallet")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(Theme.text)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Theme.card)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(Theme.cardBorder, lineWidth: 1)
+                        )
+                    }
+                }
+                .padding(.horizontal, 24)
+
+                Spacer()
+            }
         }
+        .preferredColorScheme(.dark)
     }
 }
 
@@ -94,6 +131,7 @@ struct MainTabView: View {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
         }
+        .tint(Theme.accent)
     }
 }
 
@@ -110,57 +148,84 @@ struct CreateWalletView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 24) {
-                // Header
-                VStack(spacing: 12) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
+            ZStack {
+                Theme.bg.ignoresSafeArea()
 
-                    Text("Create New Wallet")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                VStack(spacing: 28) {
+                    // Header
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Theme.accentDim)
+                                .frame(width: 72, height: 72)
 
-                    Text("Generate a new wallet with a fresh recovery phrase")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, 32)
+                            Image(systemName: "plus")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(Theme.accent)
+                        }
 
-                // Form
-                Form {
-                    Section("Wallet Name") {
-                        TextField("My Wallet", text: $walletName)
+                        Text("Create New Wallet")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(Theme.text)
+
+                        Text("Generate a new wallet with a fresh recovery phrase")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(Theme.textSecondary)
+                            .multilineTextAlignment(.center)
                     }
+                    .padding(.top, 20)
 
-                    Section {
+                    // Form
+                    VStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Wallet Name")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Theme.textSecondary)
+
+                            TextField("My Wallet", text: $walletName)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Theme.text)
+                                .padding(14)
+                                .background(Theme.card)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Theme.cardBorder, lineWidth: 1)
+                                )
+                        }
+
                         Button(action: createWallet) {
                             HStack {
-                                Spacer()
                                 if isLoading {
                                     ProgressView()
-                                        .tint(.white)
+                                        .tint(Theme.bg)
                                 } else {
                                     Text("Create Wallet")
-                                        .fontWeight(.semibold)
+                                        .font(.system(size: 16, weight: .semibold))
                                 }
-                                Spacer()
                             }
+                            .foregroundColor(Theme.bg)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(walletName.isEmpty || isLoading ? Theme.textTertiary : Theme.accent)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
                         }
-                        .listRowBackground(Color.blue)
-                        .foregroundColor(.white)
                         .disabled(walletName.isEmpty || isLoading)
                     }
+                    .padding(.horizontal, 20)
+
+                    Spacer()
                 }
             }
             .navigationTitle("Create Wallet")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(Theme.textSecondary)
                 }
             }
             .alert("Error", isPresented: $showError) {
@@ -169,6 +234,7 @@ struct CreateWalletView: View {
                 Text(errorMessage)
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     private func createWallet() {
@@ -208,68 +274,107 @@ struct ImportWalletView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 24) {
-                // Header
-                VStack(spacing: 12) {
-                    Image(systemName: "arrow.right.circle.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
+            ZStack {
+                Theme.bg.ignoresSafeArea()
 
-                    Text("Import Existing Wallet")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                VStack(spacing: 28) {
+                    // Header
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Theme.accentDim)
+                                .frame(width: 72, height: 72)
 
-                    Text("Restore your wallet using your recovery phrase")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, 32)
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(Theme.accent)
+                        }
 
-                // Form
-                Form {
-                    Section("Wallet Name") {
-                        TextField("My Wallet", text: $walletName)
+                        Text("Import Existing Wallet")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(Theme.text)
+
+                        Text("Restore your wallet using your recovery phrase")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(Theme.textSecondary)
+                            .multilineTextAlignment(.center)
                     }
+                    .padding(.top, 20)
 
-                    Section("Recovery Phrase") {
-                        TextEditor(text: $mnemonic)
-                            .frame(minHeight: 100)
-                            .autocapitalization(.none)
-                            .disableAutocorrection(true)
+                    // Form
+                    VStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Wallet Name")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Theme.textSecondary)
 
-                        Text("Enter your 12 or 24 word recovery phrase")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                            TextField("My Wallet", text: $walletName)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Theme.text)
+                                .padding(14)
+                                .background(Theme.card)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Theme.cardBorder, lineWidth: 1)
+                                )
+                        }
 
-                    Section {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Recovery Phrase")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Theme.textSecondary)
+
+                            TextEditor(text: $mnemonic)
+                                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                                .foregroundColor(Theme.text)
+                                .scrollContentBackground(.hidden)
+                                .frame(minHeight: 100)
+                                .padding(14)
+                                .background(Theme.card)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Theme.cardBorder, lineWidth: 1)
+                                )
+
+                            Text("Enter your 12 or 24 word recovery phrase")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Theme.textTertiary)
+                        }
+
                         Button(action: importWallet) {
                             HStack {
-                                Spacer()
                                 if isLoading {
                                     ProgressView()
-                                        .tint(.white)
+                                        .tint(Theme.bg)
                                 } else {
                                     Text("Import Wallet")
-                                        .fontWeight(.semibold)
+                                        .font(.system(size: 16, weight: .semibold))
                                 }
-                                Spacer()
                             }
+                            .foregroundColor(Theme.bg)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(walletName.isEmpty || mnemonic.isEmpty || isLoading ? Theme.textTertiary : Theme.accent)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
                         }
-                        .listRowBackground(Color.blue)
-                        .foregroundColor(.white)
                         .disabled(walletName.isEmpty || mnemonic.isEmpty || isLoading)
                     }
+                    .padding(.horizontal, 20)
+
+                    Spacer()
                 }
             }
             .navigationTitle("Import Wallet")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(Theme.textSecondary)
                 }
             }
             .alert("Error", isPresented: $showError) {
@@ -278,6 +383,7 @@ struct ImportWalletView: View {
                 Text(errorMessage)
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     private func importWallet() {
