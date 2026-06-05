@@ -1,141 +1,98 @@
-# 🚀 SolanaWallet
+# SolanaWallet
 
-A secure Solana wallet iOS app with Widget extension for quick balance viewing and sending.
+> Native iOS Solana wallet — zero dependencies, maximum security.
 
-![iOS](https://img.shields.io/badge/iOS-17.0+-blue)
-![Swift](https://img.shields.io/badge/Swift-5.9-orange)
-![License](https://img.shields.io/badge/License-MIT-green)
+![iOS](https://img.shields.io/badge/iOS-17%2B-000000?style=flat-square&logo=apple&logoColor=white)
+![Swift](https://img.shields.io/badge/Swift_5.9-F05138?style=flat-square&logo=swift&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-00F584?style=flat-square)
+![Dependencies](https://img.shields.io/badge/Dependencies-Zero-00F584?style=flat-square)
 
-## ✨ Features
+---
 
-- 🔐 **Secure Wallet** - Create or import wallet with recovery phrase
-- 💰 **Balance Tracking** - View SOL and SPL token balances
-- 📤 **Send SOL** - Send transactions with Face ID confirmation
-- 📥 **Receive** - QR code and copy address
-- 📊 **Transaction History** - View past transactions
-- 📱 **Widget** - Quick balance view on home screen
-- ⚡ **Quick Send** - Send SOL directly from widget
-- 🔒 **Biometric Auth** - Face ID for transaction confirmation
+## What is this?
 
-## 🏗️ Architecture
+A non-custodial Solana wallet for iOS with **WidgetKit integration** — check balances and send SOL straight from your home screen. Built entirely on Apple's native frameworks. No third-party SDKs, no bloated dependencies.
+
+## Features
+
+- 🔐 **Non-custodial** — keys never leave your device
+- 💸 **Send SOL** — with Face ID confirmation
+- 📥 **Receive** — QR code + address copy
+- 📊 **Token balances** — SOL and SPL tokens
+- 📱 **Home Screen Widget** — quick balance, quick send
+- 🔒 **Secure Enclave** — private key storage on hardware
+- 🧬 **App Intents** — widget-to-app handoff for signing
+
+## Security
+
+| Layer | Implementation |
+|-------|----------------|
+| Private keys | Secure Enclave (hardware-backed) |
+| Secrets storage | iOS Keychain |
+| Transaction signing | Face ID / Touch ID |
+| Widget access | Read-only — cannot sign |
+| Inter-app | App Groups + Keychain Sharing |
+
+## Architecture
 
 ```
-SolanaWallet/
-├── App/                    # Main app entry
-├── Core/
-│   ├── Wallet/             # Wallet management
-│   ├── Solana/             # Solana RPC integration
-│   └── Security/           # Face ID, Keychain, Secure Enclave
-├── Features/               # UI Views
-├── Widget/                 # WidgetKit extension
-└── Shared/                 # Models and extensions
+┌─────────────────────────────────────────────┐
+│                  SolanaWallet                │
+├──────────┬──────────┬───────────┬───────────┤
+│   App    │   Core   │ Features  │  Widget   │
+│          │          │           │           │
+│ Entry    │ Wallet   │ Dashboard │ Balance   │
+│ Routing  │ Solana   │ Send      │ Quick Send│
+│ State    │ Security │ Receive   │ Intents   │
+│          │          │ History   │           │
+│          │          │ Settings  │           │
+└──────────┴──────────┴───────────┴───────────┘
+       │          │          │          │
+       ▼          ▼          ▼          ▼
+   SwiftUI   CryptoKit   Security   AppIntents
+              (native)   (native)   (native)
 ```
 
-## 🔐 Security
+## Tech Stack
 
-| Feature | Implementation |
-|---------|----------------|
-| Private Key Storage | iOS Secure Enclave |
-| Key Storage | iOS Keychain |
-| Transaction Auth | Face ID / Touch ID |
-| Widget Access | Read-only (cannot sign) |
-| App Communication | App Groups + Keychain Sharing |
+| Component | Framework |
+|-----------|-----------|
+| UI | SwiftUI |
+| Crypto | CryptoKit |
+| Keychain | Security framework |
+| Auth | LocalAuthentication |
+| Networking | URLSession + JSON-RPC |
+| Widget | WidgetKit + AppIntents |
+| State | @Observable (iOS 17+) |
 
-## 📱 Widget
+> **100% native.** Zero third-party packages.
 
-The widget provides:
-- **Small**: Quick balance view
-- **Medium**: Balance + Quick actions (Send/Receive)
-- **Large**: Full wallet overview with actions
+## Getting Started
 
-**Note**: Widget cannot directly send SOL due to iOS security restrictions. It uses App Intents to hand off to the main app for Face ID authentication.
+```bash
+git clone https://github.com/FlipZ3ro/SolanaWallet.git
+cd SolanaWallet
+brew install xcodegen   # if not installed
+./setup.sh              # generates .xcodeproj from project.yml
+```
 
-## 🛠️ Tech Stack
+Then in Xcode:
+1. Select both targets → Signing & Capabilities → **+ App Groups**
+2. Enable `group.com.solanawallet.app`
+3. ⌘R
 
-- **Language**: Swift 5.9+
-- **UI**: SwiftUI
-- **Widget**: WidgetKit + AppIntents
-- **Crypto**: CryptoKit (native)
-- **Key Storage**: Security framework (native)
-- **Auth**: LocalAuthentication (Face ID)
-- **Networking**: URLSession + JSON-RPC
-- **State**: @Observable (iOS 17+)
+## Deep Links
 
-> **Zero third-party dependencies** — everything uses native iOS frameworks.
+```
+solana-wallet://send?amount=0.1&to=ADDRESS
+solana-wallet://receive
+solana-wallet://swap
+```
 
-## 🚀 Getting Started
+## License
 
-### Prerequisites
+MIT — see [LICENSE](LICENSE).
 
-- macOS 14+
-- Xcode 15+
-- iOS 17+ device or simulator
-- XcodeGen (`brew install xcodegen`)
+---
 
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/FlipZ3ro/SolanaWallet.git
-   cd SolanaWallet
-   ```
-
-2. **Generate the Xcode project**
-   ```bash
-   ./setup.sh
-   ```
-   This runs XcodeGen to generate `SolanaWallet.xcodeproj` from the committed `project.yml`.
-
-3. **Configure App Groups**
-   - Select both app and widget targets
-   - Signing & Capabilities → + Capability → App Groups
-   - Enable: `group.com.solanawallet.app`
-
-4. **Build and Run**
-   - Select your device or simulator
-   - Press ⌘R
-
-## 📱 Testing on Device
-
-### Option 1: Direct Run (Mac required)
-1. Connect iPhone to Mac
-2. Select device in Xcode
-3. Press ⌘R
-
-### Option 2: TestFlight
-1. Archive app (Product → Archive)
-2. Upload to App Store Connect
-3. Invite testers via TestFlight
-
-### Option 3: AltStore (No Mac required)
-1. Install AltStore on iPhone
-2. Build .ipa file
-3. Sideload via AltStore
-
-## 🔧 Configuration
-
-### URL Scheme
-- Scheme: `solana-wallet`
-- Use: `solana-wallet://send?amount=0.1&to=ADDRESS`
-
-### App Groups
-- Identifier: `group.com.solanawallet.app`
-- Used for: Widget data sharing
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📧 Contact
-
-- GitHub: [@FlipZ3ro](https://github.com/FlipZ3ro)
-
-Project Link: [https://github.com/FlipZ3ro/SolanaWallet](https://github.com/FlipZ3ro/SolanaWallet)
+[@FlipZ3ro](https://github.com/FlipZ3ro) · [GitHub](https://github.com/FlipZ3ro/SolanaWallet)
