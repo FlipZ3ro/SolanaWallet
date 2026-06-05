@@ -11,29 +11,46 @@ struct ReceiveView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: AppConstants.UI.padding) {
-                // QR Code
-                qrCodeSection
+            ZStack {
+                Theme.bg.ignoresSafeArea()
 
-                // Address Section
-                addressSection
+                // Ambient glow
+                RadialGradient(
+                    colors: [Theme.accent.opacity(0.05), .clear],
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 250
+                )
+                .ignoresSafeArea()
 
-                // Copy Button
-                copyButton
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // QR Code
+                        qrCodeSection
 
-                // Share Button
-                shareButton
+                        // Address Section
+                        addressSection
 
-                Spacer()
+                        // Buttons
+                        VStack(spacing: 10) {
+                            copyButton
+                            shareButton
+                        }
+
+                        Spacer()
+                    }
+                    .padding(20)
+                }
             }
-            .padding()
             .navigationTitle("Receive SOL")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundColor(Theme.textSecondary)
                 }
             }
             .alert("Copied!", isPresented: $showCopiedAlert) {
@@ -42,6 +59,7 @@ struct ReceiveView: View {
                 Text("Address copied to clipboard")
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - QR Code Section
@@ -49,22 +67,32 @@ struct ReceiveView: View {
     private var qrCodeSection: some View {
         VStack(spacing: 16) {
             if let address = walletManager.currentWallet?.publicKey {
-                // Generate QR Code
+                // QR Code container
                 QRCodeView(url: "solana:\(address)")
                     .frame(width: 200, height: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: AppConstants.UI.smallCornerRadius))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: AppConstants.UI.smallCornerRadius)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Theme.cardBorder, lineWidth: 1)
                     )
+                    .shadow(color: Theme.accent.opacity(0.1), radius: 20, y: 10)
             } else {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Theme.card)
                     .frame(width: 200, height: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: AppConstants.UI.smallCornerRadius))
                     .overlay(
-                        Text("No wallet")
-                            .foregroundColor(.secondary)
+                        VStack(spacing: 8) {
+                            Image(systemName: "qrcode")
+                                .font(.system(size: 32))
+                                .foregroundColor(Theme.textTertiary)
+                            Text("No wallet")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Theme.textSecondary)
+                        }
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Theme.cardBorder, lineWidth: 1)
                     )
             }
         }
@@ -73,17 +101,26 @@ struct ReceiveView: View {
     // MARK: - Address Section
 
     private var addressSection: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             Text("Your Solana Address")
-                .font(.headline)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(Theme.textSecondary)
+                .textCase(.uppercase)
+                .tracking(0.5)
 
             if let address = walletManager.currentWallet?.publicKey {
                 Text(address)
-                    .font(.caption)
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundColor(Theme.textSecondary)
                     .multilineTextAlignment(.center)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .clipShape(RoundedRectangle(cornerRadius: AppConstants.UI.smallCornerRadius))
+                    .padding(14)
+                    .frame(maxWidth: .infinity)
+                    .background(Theme.card)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Theme.cardBorder, lineWidth: 1)
+                    )
             }
         }
     }
@@ -94,9 +131,15 @@ struct ReceiveView: View {
         Button(action: copyAddress) {
             HStack {
                 Image(systemName: "doc.on.doc")
+                    .font(.system(size: 14, weight: .semibold))
                 Text("Copy Address")
+                    .font(.system(size: 16, weight: .semibold))
             }
-            .primaryButtonStyle()
+            .foregroundColor(Theme.bg)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(Theme.accent)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
 
@@ -106,9 +149,19 @@ struct ReceiveView: View {
         Button(action: shareAddress) {
             HStack {
                 Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 14, weight: .semibold))
                 Text("Share Address")
+                    .font(.system(size: 16, weight: .semibold))
             }
-            .secondaryButtonStyle()
+            .foregroundColor(Theme.text)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Theme.cardBorder, lineWidth: 1)
+            )
         }
     }
 
@@ -167,6 +220,7 @@ class QRCodeUIView: UIView {
 
     private func setupView() {
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
         addSubview(imageView)
 
         NSLayoutConstraint.activate([
@@ -187,7 +241,6 @@ class QRCodeUIView: UIView {
             if let image = filter.outputImage {
                 let transform = CGAffineTransform(scaleX: 10, y: 10)
                 let scaledImage = image.transformed(by: transform)
-
                 imageView.image = UIImage(ciImage: scaledImage)
             }
         }
@@ -199,5 +252,6 @@ class QRCodeUIView: UIView {
 struct ReceiveView_Previews: PreviewProvider {
     static var previews: some View {
         ReceiveView()
+            .preferredColorScheme(.dark)
     }
 }

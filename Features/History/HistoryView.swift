@@ -23,35 +23,42 @@ struct HistoryView: View {
                 // Transaction List
                 transactionList
             }
-            .navigationTitle("Transaction History")
-            .navigationBarTitleDisplayMode(.inline)
+            .background(Theme.bg.ignoresSafeArea())
+            .navigationTitle("History")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .task {
                 await walletManager.fetchTransactions()
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - Filter Picker
 
     private var filterPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 ForEach(TransactionFilter.allCases, id: \.self) { filter in
-                    Button(action: { selectedFilter = filter }) {
+                    Button(action: { withAnimation(.snappy) { selectedFilter = filter } }) {
                         Text(filter.rawValue)
-                            .font(.subheadline)
-                            .fontWeight(selectedFilter == filter ? .semibold : .regular)
-                            .foregroundColor(selectedFilter == filter ? .white : .primary)
-                            .padding(.horizontal, 16)
+                            .font(.system(size: 13, weight: selectedFilter == filter ? .semibold : .medium))
+                            .foregroundColor(selectedFilter == filter ? Theme.bg : Theme.textSecondary)
+                            .padding(.horizontal, 14)
                             .padding(.vertical, 8)
                             .background(
-                                selectedFilter == filter ? Color.blue : Color(.systemGray6)
+                                selectedFilter == filter ? Theme.accent : Theme.card
                             )
                             .clipShape(Capsule())
+                            .overlay(
+                                selectedFilter == filter ? nil :
+                                    Capsule().stroke(Theme.cardBorder, lineWidth: 1)
+                            )
                     }
                 }
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
     }
 
@@ -68,6 +75,7 @@ struct HistoryView: View {
 
                         if transaction.id != filteredTransactions.last?.id {
                             Divider()
+                                .background(Theme.cardBorder)
                                 .padding(.leading, 56)
                         }
                     }
@@ -80,19 +88,28 @@ struct HistoryView: View {
 
     private var emptyState: some View {
         VStack(spacing: 16) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary)
+            ZStack {
+                Circle()
+                    .fill(Theme.card)
+                    .frame(width: 72, height: 72)
 
-            Text("No Transactions")
-                .font(.headline)
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 28))
+                    .foregroundColor(Theme.textTertiary)
+            }
 
-            Text("Your transaction history will appear here")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 6) {
+                Text("No Transactions")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(Theme.text)
+
+                Text("Your transaction history will appear here")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
         }
-        .padding(.top, 60)
+        .padding(.top, 80)
     }
 
     // MARK: - Filtered Transactions
@@ -121,38 +138,37 @@ struct TransactionDetailRow: View {
             // Transaction Icon
             ZStack {
                 Circle()
-                    .fill(iconColor.opacity(0.1))
+                    .fill(iconColor.opacity(0.12))
                     .frame(width: 44, height: 44)
 
                 Image(systemName: iconName)
-                    .font(.title3)
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(iconColor)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(transactionTitle)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Theme.text)
 
                 Text(transaction.addressDisplay)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundColor(Theme.textSecondary)
             }
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: 3) {
                 Text(transactionAmountDisplay)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(iconColor)
 
                 Text(transaction.timestamp.timeAgoDisplay)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
             }
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .contentShape(Rectangle())
         .onTapGesture {
@@ -164,40 +180,28 @@ struct TransactionDetailRow: View {
 
     private var iconName: String {
         switch transaction.type {
-        case .send:
-            return "arrow.up.right"
-        case .receive:
-            return "arrow.down.left"
-        case .swap:
-            return "arrow.triangle.2.circlepath"
-        case .unknown:
-            return "questionmark.circle"
+        case .send:    return "arrow.up.right"
+        case .receive: return "arrow.down.left"
+        case .swap:    return "arrow.triangle.2.circlepath"
+        case .unknown: return "questionmark.circle"
         }
     }
 
     private var iconColor: Color {
         switch transaction.type {
-        case .send:
-            return .red
-        case .receive:
-            return .green
-        case .swap:
-            return .orange
-        case .unknown:
-            return .gray
+        case .send:    return Theme.send
+        case .receive: return Theme.receive
+        case .swap:    return Theme.swap
+        case .unknown: return Theme.textSecondary
         }
     }
 
     private var transactionTitle: String {
         switch transaction.type {
-        case .send:
-            return "Sent SOL"
-        case .receive:
-            return "Received SOL"
-        case .swap:
-            return "Swapped Token"
-        case .unknown:
-            return "Transaction"
+        case .send:    return "Sent SOL"
+        case .receive: return "Received SOL"
+        case .swap:    return "Swapped Token"
+        case .unknown: return "Transaction"
         }
     }
 
@@ -208,12 +212,9 @@ struct TransactionDetailRow: View {
 
     private var addressDisplay: String {
         switch transaction.type {
-        case .send:
-            return transaction.to.truncatedAddress
-        case .receive:
-            return transaction.from.truncatedAddress
-        default:
-            return ""
+        case .send:    return transaction.to.truncatedAddress
+        case .receive: return transaction.from.truncatedAddress
+        default:       return ""
         }
     }
 }
@@ -223,5 +224,6 @@ struct TransactionDetailRow: View {
 struct HistoryView_Previews: PreviewProvider {
     static var previews: some View {
         HistoryView()
+            .preferredColorScheme(.dark)
     }
 }
