@@ -1,6 +1,22 @@
 import WidgetKit
 import SwiftUI
 
+// MARK: - Widget Theme (shared with app)
+
+private enum WTheme {
+    static let bg = Color(red: 0.04, green: 0.04, blue: 0.06)
+    static let card = Color(red: 0.09, green: 0.09, blue: 0.12)
+    static let accent = Color(red: 0.0, green: 0.96, blue: 0.52)      // #00F584
+    static let accentDim = Color(red: 0.0, green: 0.96, blue: 0.52).opacity(0.12)
+    static let text = Color.white
+    static let textSec = Color.white.opacity(0.5)
+    static let textTer = Color.white.opacity(0.25)
+    static let send = Color(red: 1.0, green: 0.27, blue: 0.27)
+    static let receive = Color(red: 0.0, green: 0.96, blue: 0.52)
+    static let swap = Color(red: 1.0, green: 0.6, blue: 0.0)
+    static let border = Color.white.opacity(0.06)
+}
+
 // MARK: - Balance Widget
 
 struct BalanceWidget: Widget {
@@ -38,205 +54,280 @@ struct BalanceWidgetView: View {
     // MARK: - Small Widget
 
     private var smallWidget: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: "wave.3.right.circle.fill")
-                    .foregroundColor(.green)
+        ZStack {
+            // Background
+            WTheme.bg
 
-                Text("SOL")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer()
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(entry.balance.displaySOL)
-                    .font(.title2)
-                    .fontWeight(.bold)
-
-                Text(entry.balance.displayUSD)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding()
-        .background(
-            LinearGradient(
-                colors: [.blue, .purple],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+            // Subtle accent glow
+            RadialGradient(
+                colors: [WTheme.accent.opacity(0.06), .clear],
+                center: .topTrailing,
+                startRadius: 0,
+                endRadius: 120
             )
-        )
-        .foregroundColor(.white)
+
+            VStack(alignment: .leading, spacing: 12) {
+                // Header
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(WTheme.accent)
+                        .frame(width: 6, height: 6)
+
+                    Text("SOL")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(WTheme.accent)
+
+                    Spacer()
+
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 8))
+                        .foregroundColor(WTheme.textTer)
+                }
+
+                Spacer()
+
+                // Balance
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(entry.balance.displaySOL)
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundColor(WTheme.text)
+                        .contentTransition(.numericText())
+
+                    Text(entry.balance.displayUSD)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(WTheme.textSec)
+                }
+            }
+            .padding(14)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     // MARK: - Medium Widget
 
     private var mediumWidget: some View {
-        HStack(spacing: 16) {
-            // Balance
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: "wave.3.right.circle.fill")
-                        .foregroundColor(.green)
+        ZStack {
+            // Background
+            WTheme.bg
 
-                    Text("Solana Balance")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Text(entry.balance.displaySOL)
-                    .font(.title)
-                    .fontWeight(.bold)
-
-                Text(entry.balance.displayUSD)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer()
-
-            // Quick Actions
-            VStack(spacing: 12) {
-                Button(intent: SendIntent(amount: "0.1")) {
-                    HStack {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .foregroundColor(.red)
-                        Text("Send")
-                            .font(.caption)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.white.opacity(0.2))
-                    .clipShape(Capsule())
-                }
-
-                Link(destination: URL(string: AppConstants.DeepLink.receive)!) {
-                    HStack {
-                        Image(systemName: "arrow.down.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Receive")
-                            .font(.caption)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.white.opacity(0.2))
-                    .clipShape(Capsule())
-                }
-            }
-        }
-        .padding()
-        .background(
-            LinearGradient(
-                colors: [.blue, .purple],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+            // Accent glow
+            RadialGradient(
+                colors: [WTheme.accent.opacity(0.05), .clear],
+                center: .leading,
+                startRadius: 0,
+                endRadius: 200
             )
-        )
-        .foregroundColor(.white)
+
+            HStack(spacing: 16) {
+                // Left: Balance
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(WTheme.accent)
+                            .frame(width: 6, height: 6)
+
+                        Text("Solana Wallet")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(WTheme.accent)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(entry.balance.displaySOL)
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(WTheme.text)
+
+                        Text(entry.balance.displayUSD)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(WTheme.textSec)
+                    }
+                }
+
+                Spacer()
+
+                // Right: Actions
+                VStack(spacing: 8) {
+                    Button(intent: SendIntent(amount: "0.1")) {
+                        widgetActionBtn(
+                            icon: "arrow.up.right",
+                            title: "Send",
+                            color: WTheme.send
+                        )
+                    }
+
+                    Link(destination: URL(string: AppConstants.DeepLink.receive)!) {
+                        widgetActionBtn(
+                            icon: "arrow.down.left",
+                            title: "Receive",
+                            color: WTheme.receive
+                        )
+                    }
+                }
+            }
+            .padding(14)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     // MARK: - Large Widget
 
     private var largeWidget: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Header
-            HStack {
-                Image(systemName: "wave.3.right.circle.fill")
-                    .foregroundColor(.green)
+        ZStack {
+            // Background
+            WTheme.bg
 
-                Text("Solana Wallet")
-                    .font(.headline)
+            // Subtle accent glow top-right
+            RadialGradient(
+                colors: [WTheme.accent.opacity(0.05), .clear],
+                center: .topTrailing,
+                startRadius: 0,
+                endRadius: 180
+            )
 
-                Spacer()
+            // Subtle accent glow bottom-left
+            RadialGradient(
+                colors: [WTheme.accent.opacity(0.03), .clear],
+                center: .bottomLeading,
+                startRadius: 0,
+                endRadius: 180
+            )
 
-                if !entry.walletAddress.isEmpty {
-                    Text(entry.walletAddress.truncatedAddress)
-                        .font(.caption2)
-                        .foregroundColor(.white.opacity(0.7))
-                }
-            }
+            VStack(alignment: .leading, spacing: 14) {
+                // Header
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(WTheme.accent)
+                        .frame(width: 6, height: 6)
 
-            // Balance
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Total Balance")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.7))
+                    Text("Solana Wallet")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(WTheme.accent)
 
-                HStack(alignment: .firstTextBaseline) {
-                    Text(entry.balance.displaySOL)
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                    Spacer()
 
-                    Text("SOL")
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.7))
-                }
-
-                Text(entry.balance.displayUSD)
-                    .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.7))
-            }
-
-            Divider()
-                .background(Color.white.opacity(0.3))
-
-            // Quick Actions
-            HStack(spacing: 12) {
-                Button(intent: SendIntent(amount: "0.1")) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .font(.title3)
-                        Text("Send")
-                            .font(.caption)
+                    if !entry.walletAddress.isEmpty {
+                        Text(entry.walletAddress.truncatedAddress)
+                            .font(.system(size: 9, weight: .medium, design: .monospaced))
+                            .foregroundColor(WTheme.textTer)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(WTheme.border)
+                            .clipShape(Capsule())
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(Color.white.opacity(0.2))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
 
-                Link(destination: URL(string: AppConstants.DeepLink.receive)!) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "arrow.down.circle.fill")
-                            .font(.title3)
-                        Text("Receive")
-                            .font(.caption)
+                // Balance
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Total Balance")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(WTheme.textSec)
+
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(entry.balance.displaySOL)
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundColor(WTheme.text)
+
+                        Text("SOL")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(WTheme.textSec)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(Color.white.opacity(0.2))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                    Text(entry.balance.displayUSD)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(WTheme.textSec)
                 }
 
-                Link(destination: URL(string: AppConstants.DeepLink.swap)!) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .font(.title3)
-                        Text("Swap")
-                            .font(.caption)
+                // Divider
+                Rectangle()
+                    .fill(WTheme.border)
+                    .frame(height: 1)
+
+                // Quick Actions
+                HStack(spacing: 10) {
+                    Button(intent: SendIntent(amount: "0.1")) {
+                        widgetLargeActionBtn(
+                            icon: "arrow.up.right",
+                            title: "Send",
+                            color: WTheme.send
+                        )
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(Color.white.opacity(0.2))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                    Link(destination: URL(string: AppConstants.DeepLink.receive)!) {
+                        widgetLargeActionBtn(
+                            icon: "arrow.down.left",
+                            title: "Receive",
+                            color: WTheme.receive
+                        )
+                    }
+
+                    Link(destination: URL(string: AppConstants.DeepLink.swap)!) {
+                        widgetLargeActionBtn(
+                            icon: "arrow.triangle.2.circlepath",
+                            title: "Swap",
+                            color: WTheme.swap
+                        )
+                    }
                 }
+
+                // Last Updated
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 8))
+                    Text("Updated \(entry.date, style: .relative) ago")
+                }
+                .font(.system(size: 9, weight: .medium))
+                .foregroundColor(WTheme.textTer)
             }
-
-            // Last Updated
-            Text("Updated: \(entry.date, style: .relative) ago")
-                .font(.caption2)
-                .foregroundColor(.white.opacity(0.5))
+            .padding(14)
         }
-        .padding()
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    // MARK: - Helpers
+
+    private func widgetActionBtn(icon: String, title: String, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 9, weight: .semibold))
+            Text(title)
+                .font(.system(size: 10, weight: .semibold))
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
         .background(
             LinearGradient(
-                colors: [.blue, .purple],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                colors: [color.opacity(0.7), color.opacity(0.3)],
+                startPoint: .leading,
+                endPoint: .trailing
             )
         )
-        .foregroundColor(.white)
+        .clipShape(Capsule())
+    }
+
+    private func widgetLargeActionBtn(icon: String, title: String, color: Color) -> some View {
+        VStack(spacing: 5) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 32, height: 32)
+
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(color)
+            }
+
+            Text(title)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(WTheme.text)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(WTheme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(WTheme.border, lineWidth: 0.5)
+        )
     }
 }
 
