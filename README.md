@@ -55,18 +55,13 @@ The widget provides:
 - **Language**: Swift 5.9+
 - **UI**: SwiftUI
 - **Widget**: WidgetKit + AppIntents
-- **Solana SDK**: SolanaSwift
-- **Key Storage**: Keychain + Secure Enclave
+- **Crypto**: CryptoKit (native)
+- **Key Storage**: Security framework (native)
 - **Auth**: LocalAuthentication (Face ID)
+- **Networking**: URLSession + JSON-RPC
 - **State**: @Observable (iOS 17+)
 
-## 📦 Dependencies
-
-| Package | Purpose |
-|---------|---------|
-| [SolanaSwift](https://github.com/AmirHosseinAghaei/SolanaSwift) | Solana RPC client |
-| [CryptoSwift](https://github.com/krzyzanowskicrypto/CryptoSwift) | Cryptography |
-| [KeychainAccess](https://github.com/kishikawakatsumi/KeychainAccess) | Keychain wrapper |
+> **Zero third-party dependencies** — everything uses native iOS frameworks.
 
 ## 🚀 Getting Started
 
