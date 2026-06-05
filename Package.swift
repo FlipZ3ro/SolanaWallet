@@ -5,8 +5,7 @@ import PackageDescription
 let package = Package(
     name: "SolanaWallet",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14)
+        .iOS(.v17)
     ],
     products: [
         .library(
@@ -22,10 +21,7 @@ let package = Package(
         .package(url: "https://github.com/krzyzanowskicrypto/CryptoSwift.git", from: "1.8.0"),
 
         // Keychain
-        .package(url: "https://github.com/kishikawakatsumi/KeychainAccess.git", from: "4.2.0"),
-
-        // QR Code
-        .package(url: "https://github.com/AliRn75/QRCode.git", from: "3.0.0")
+        .package(url: "https://github.com/kishikawakatsumi/KeychainAccess.git", from: "4.2.0")
     ],
     targets: [
         .target(
@@ -33,8 +29,7 @@ let package = Package(
             dependencies: [
                 "SolanaSwift",
                 "CryptoSwift",
-                "KeychainAccess",
-                "QRCode"
+                "KeychainAccess"
             ]
         )
     ]

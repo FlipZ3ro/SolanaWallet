@@ -52,3 +52,7 @@ fastlane/test_output
 ._*
 .Spotlight-V100
 .Trashes
+
+# XcodeGen (generate with ./setup.sh)
+*.xcodeproj
+

@@ -1,0 +1,58 @@
+name: SolanaWallet
+options:
+  bundleIdPrefix: com.solanawallet
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "15.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  SolanaWallet:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+      - path: Core
+      - path: Features
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.solanawallet.app
+        INFOPLIST_FILE: App/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App/SolanaWallet.entitlements
+    dependencies:
+      - target: SolanaWalletWidget
+        embed: true
+    scheme:
+      testTargets: []
+
+  SolanaWalletWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widget
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.solanawallet.app.widget
+        INFOPLIST_FILE: Widget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Widget/SolanaWalletWidget.entitlements
+    dependencies: []
+
+packages:
+  SolanaSwift:
+    url: https://github.com/AmirHosseinAghaei/SolanaSwift.git
+    from: 3.0.0
+  CryptoSwift:
+    url: https://github.com/krzyzanowskicrypto/CryptoSwift.git
+    from: 1.8.0
+  KeychainAccess:
+    url: https://github.com/kishikawakatsumi/KeychainAccess.git
+    from: 4.2.0

@@ -75,43 +75,30 @@ The widget provides:
 - macOS 14+
 - Xcode 15+
 - iOS 17+ device or simulator
-- Apple Developer Account (for device testing)
+- XcodeGen (`brew install xcodegen`)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/SolanaWallet.git
+   git clone https://github.com/FlipZ3ro/SolanaWallet.git
    cd SolanaWallet
    ```
 
-2. **Open in Xcode**
+2. **Generate the Xcode project**
    ```bash
-   open SolanaWallet.xcodeproj
+   ./setup.sh
    ```
+   This runs XcodeGen to generate `SolanaWallet.xcodeproj` from the committed `project.yml`.
 
-3. **Add SPM Dependencies**
-   - File → Add Package Dependencies
-   - Add the packages listed above
-
-4. **Configure App Groups**
+3. **Configure App Groups**
    - Select both app and widget targets
    - Signing & Capabilities → + Capability → App Groups
    - Enable: `group.com.solanawallet.app`
 
-5. **Build and Run**
+4. **Build and Run**
    - Select your device or simulator
    - Press ⌘R
-
-### Quick Setup (macOS)
-
-```bash
-# Install XcodeGen
-brew install xcodegen
-
-# Run setup script
-./setup.sh
-```
 
 ## 📱 Testing on Device
 
@@ -154,6 +141,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_twitter) - your.email@example.com
+- GitHub: [@FlipZ3ro](https://github.com/FlipZ3ro)
 
-Project Link: [https://github.com/YOUR_USERNAME/SolanaWallet](https://github.com/YOUR_USERNAME/SolanaWallet)
+Project Link: [https://github.com/FlipZ3ro/SolanaWallet](https://github.com/FlipZ3ro/SolanaWallet)

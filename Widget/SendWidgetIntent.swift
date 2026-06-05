@@ -6,6 +6,7 @@ import WidgetKit
 struct SendIntent: AppIntent {
     static var title: LocalizedStringResource = "Send SOL"
     static var description = IntentDescription("Send SOL from the widget")
+    static var openAppWhenRun: Bool = true
 
     @Parameter(title: "Amount")
     var amount: String
@@ -18,23 +19,16 @@ struct SendIntent: AppIntent {
         self.amount = amount
     }
 
-    func perform() async throws -> some IntentResult {
-        // Open the main app with send context
-        // The widget cannot directly send SOL due to security restrictions
-        // It needs to hand off to the main app for Face ID authentication
-
+    func perform() async throws -> some IntentResult & OpensIntent {
+        // The widget cannot directly send SOL due to security restrictions.
+        // It hands off to the main app for Face ID authentication and signing.
         let deepLink = "\(AppConstants.DeepLink.send)?amount=\(amount)"
 
         guard let url = URL(string: deepLink) else {
             return .result()
         }
 
-        // Open the app via URL scheme
-        await MainActor.run {
-            UIApplication.shared.open(url)
-        }
-
-        return .result()
+        return .result(opensIntent: OpenURLIntent(url))
     }
 }
 
@@ -43,6 +37,7 @@ struct SendIntent: AppIntent {
 struct QuickSendIntent: AppIntent {
     static var title: LocalizedStringResource = "Quick Send"
     static var description = IntentDescription("Quickly send a preset amount of SOL")
+    static var openAppWhenRun: Bool = true
 
     @Parameter(title: "Amount")
     var amount: Double
@@ -60,18 +55,14 @@ struct QuickSendIntent: AppIntent {
         self.recipient = recipient
     }
 
-    func perform() async throws -> some IntentResult {
+    func perform() async throws -> some IntentResult & OpensIntent {
         let deepLink = "\(AppConstants.DeepLink.send)?amount=\(amount)&to=\(recipient)"
 
         guard let url = URL(string: deepLink) else {
             return .result()
         }
 
-        await MainActor.run {
-            UIApplication.shared.open(url)
-        }
-
-        return .result()
+        return .result(opensIntent: OpenURLIntent(url))
     }
 }
 
@@ -83,7 +74,7 @@ struct RefreshBalanceIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         // Refresh balance from shared UserDefaults
-        guard let sharedDefaults = UserDefaults(suiteName: AppConstants.AppGroup.identifier) else {
+        guard UserDefaults(suiteName: AppConstants.AppGroup.identifier) != nil else {
             return .result(dialog: "Failed to access shared data")
         }
 
